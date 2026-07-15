@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DUSHAN PROJECTS - Video Downloader</title>
+    <style>
+        :root {
+            --bg: #06060f;
+            --surface: rgba(18, 18, 35, 0.75);
+            --text: #e8e8f0;
+            --text-secondary: #a0a0bb;
+            --border: rgba(255, 255, 255, 0.07);
+            --input-bg: rgba(10, 10, 25, 0.7);
+            --success: #00e676;
+            --error: #ff1744;
+            --warning: #ffab00;
+            --tiktok: #ff0050;
+            --tiktok-secondary: #00f2ea;
+            --youtube: #ff0000;
+            --youtube-dark: #cc0000;
+            --facebook: #1877f2;
+            --facebook-light: #4d9bff;
+            --radius: 20px;
+            --transition: 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-image:
+                radial-gradient(ellipse at 20% 20%, rgba(255, 0, 80, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 30%, rgba(255, 0, 0, 0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 70%, rgba(24, 119, 242, 0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(108, 0, 255, 0.04) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Subtle grid overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridShift 20s linear infinite;
+        }
+
+        @keyframes gridShift {
+            0% {
+                background-position: 0 0, 0 0;
+            }
+            100% {
+                background-position: 60px 60px, 60px 60px;
+            }
+        }
+
+        /* ============ PARTICLES CANVAS ============ */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ============ FLOATING ORBS ============ */
+        .floating-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 8s ease-in-out infinite;
+        }
+        .orb-1 {
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 0, 80, 0.08);
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+        .orb-2 {
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 0, 0, 0.07);
+            top: 40%;
+            right: 8%;
+            animation-delay: -3s;
+        }
+        .orb-3 {
+            width: 280px;
+            height: 280px;
+            background: rgba(24, 119, 242, 0.07);
+            bottom: 15%;
+            left: 20%;
+            animation-delay: -6s;
+        }
+        .orb-4 {
+            width: 200px;
+            height: 200px;
+            background: rgba(108, 0, 255, 0.06);
+            top: 55%;
+            left: 55%;
+            animation-delay: -4s;
+        }
+
+        @keyframes orbFloat {
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(40px, -30px) scale(1.15);
+            }
+            50% {
+                transform: translate(-20px, -60px) scale(0.9);
+            }
+            75% {
+                transform: translate(-50px, -15px) scale(1.1);
+            }
+        }
+
+        /* ============ MAIN CONTAINER ============ */
+        .main-container {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 20px 50px;
+        }
+
+        /* ============ HEADER ============ */
+        .header {
+            text-align: center;
+            padding: 45px 15px 25px;
+            position: relative;
+        }
+
+        .header .logo-icon {
+            font-size: 56px;
+            margin-bottom: 8px;
+            display: inline-block;
+            animation: floatIcon 3.5s ease-in-out infinite;
+            filter: drop-shadow(0 0 35px rgba(120, 0, 255, 0.55));
+        }
+
+        @keyframes floatIcon {
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            30% {
+                transform: translateY(-20px) rotate(3deg);
+            }
+            60% {
+                transform: translateY(-8px) rotate(-2deg);
+            }
+        }
+
+        .header .title {
+            font-size: clamp(2rem, 5.5vw, 3.6rem);
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #6c00ff, #00c6ff, #ff0050, #ff8800, #6c00ff);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 4.5s ease infinite;
+            margin-bottom: 6px;
+            line-height: 1.15;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .header .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            font-weight: 400;
+            opacity: 0.75;
+        }
+
+        .header .glow-line {
+            width: 150px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #6c00ff, #00c6ff, #ff0050, transparent);
+            margin: 16px auto 0;
+            border-radius: 50px;
+            animation: glowPulse 2.8s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%,
+            100% {
+                opacity: 0.4;
+                width: 150px;
+            }
+            50% {
+                opacity: 1;
+                width: 260px;
+            }
+        }
+
+        /* ============ CARDS GRID ============ */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 26px;
+            margin-top: 15px;
+            perspective: 1000px;
+        }
+
+        @media (max-width: 780px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .header {
+                padding: 30px 10px 18px;
+            }
+            .header .logo-icon {
+                font-size: 42px;
+            }
+            .header .subtitle {
+                letter-spacing: 3px;
+                font-size: 0.8rem;
+            }
+            .main-container {
+                padding: 10px 10px 35px;
+            }
+            .card {
+                padding: 24px 16px 20px !important;
+                border-radius: 18px !important;
+            }
+            .btn {
+                font-size: 0.85rem !important;
+                padding: 13px 16px !important;
+                letter-spacing: 0.5px !important;
+            }
+            .card-icon svg {
+                width: 44px !important;
+                height: 44px !important;
+            }
+            .card-title {
+                font-size: 1.2rem !important;
+            }
+            .toast {
+                max-width: 88vw !important;
+                font-size: 0.8rem !important;
+                padding: 12px 15px !important;
+            }
+            .toast-container {
+                right: 6px !important;
+                top: 8px !important;
+                gap: 8px !important;
+            }
+            .floating-orb {
+                display: none;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .btn-group {
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+            .btn {
+                min-width: auto !important;
+                width: 100% !important;
+            }
+            .card {
+                padding: 18px 12px 16px !important;
+            }
+            .input-group input {
+                padding: 12px 14px !important;
+                font-size: 0.9rem !important;
+            }
+            .header .title {
+                letter-spacing: 1px;
+            }
+        }
+
+        /* ============ CARD STYLES ============ */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 30px 24px 26px;
+            position: relative;
+            overflow: visible;
+            transition: all var(--transition);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            box-shadow: 0 6px 35px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: cardEntrance 0.6s ease forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+        .card:nth-child(2) {
+            animation-delay: 0.25s;
+        }
+        .card:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes cardEntrance {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.65);
+            border-color: rgba(255, 255, 255, 0.16);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.3);
+        }
+
+        /* Platform-specific card styles */
+        .card.tiktok-card {
+            border-top: 3px solid var(--tiktok);
+        }
+        .card.tiktok-card::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 80, 0.7), rgba(0, 242, 234, 0.5), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .card.tiktok-card:hover::after {
+            opacity: 1;
+        }
+        .card.tiktok-card:hover {
+            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.65), 0 0 55px rgba(255, 0, 80, 0.25);
+        }
+
+        .card.youtube-card {
+            border-top: 3px solid var(--youtube);
+        }
+        .card.youtube-card::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.7), rgba(255, 100, 100, 0.4), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .card.youtube-card:hover::after {
+            opacity: 1;
+        }
+        .card.youtube-card:hover {
+            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.65), 0 0 55px rgba(255, 0, 0, 0.25);
+        }
+
+        .card.facebook-card {
+            border-top: 3px solid var(--facebook);
+        }
+        .card.facebook-card::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(24, 119, 242, 0.7), rgba(77, 155, 255, 0.4), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .card.facebook-card:hover::after {
+            opacity: 1;
+        }
+        .card.facebook-card:hover {
+            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.65), 0 0 55px rgba(24, 119, 242, 0.25);
+        }
+
+        /* Card icon */
+        .card-icon {
+            text-align: center;
+            transition: transform 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.3);
+            position: relative;
+            z-index: 1;
+        }
+        .card:hover .card-icon {
+            transform: scale(1.12) rotate(-3deg);
+        }
+        .card-icon svg {
+            width: 52px;
+            height: 52px;
+            filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.5));
+            transition: filter 0.4s;
+        }
+        .card.tiktok-card:hover .card-icon svg {
+            filter: drop-shadow(0 4px 22px rgba(255, 0, 80, 0.55));
+        }
+        .card.youtube-card:hover .card-icon svg {
+            filter: drop-shadow(0 4px 22px rgba(255, 0, 0, 0.55));
+        }
+        .card.facebook-card:hover .card-icon svg {
+            filter: drop-shadow(0 4px 22px rgba(24, 119, 242, 0.55));
+        }
+
+        /* Card title */
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 1.5px;
+            position: relative;
+            z-index: 1;
+        }
+        .tiktok-card .card-title {
+            color: #ff4d7a;
+        }
+        .youtube-card .card-title {
+            color: #ff3333;
+        }
+        .facebook-card .card-title {
+            color: #4d9bff;
+        }
+
+        /* Input */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            position: relative;
+            z-index: 1;
+        }
+        .input-group label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 13px;
+            border: 2px solid var(--border);
+            background: var(--input-bg);
+            color: #fff;
+            font-size: 0.92rem;
+            font-family: inherit;
+            transition: all 0.35s;
+            outline: none;
+            letter-spacing: 0.4px;
+        }
+        .input-group input::placeholder {
+            color: #555;
+            font-size: 0.82rem;
+        }
+        .input-group input:focus {
+            border-color: rgba(255, 255, 255, 0.35);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.04);
+            background: rgba(15, 15, 30, 0.95);
+        }
+        .tiktok-card .input-group input:focus {
+            border-color: var(--tiktok);
+            box-shadow: 0 0 22px rgba(255, 0, 80, 0.2);
+        }
+        .youtube-card .input-group input:focus {
+            border-color: var(--youtube);
+            box-shadow: 0 0 22px rgba(255, 0, 0, 0.2);
+        }
+        .facebook-card .input-group input:focus {
+            border-color: var(--facebook);
+            box-shadow: 0 0 22px rgba(24, 119, 242, 0.2);
+        }
+
+        /* Button group */
+        .btn-group {
+            display: flex;
+            gap: 11px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        .btn-group.single {
+            justify-content: center;
+        }
+
+        /* Buttons */
+        .btn {
+            flex: 1;
+            min-width: 115px;
+            padding: 13px 20px;
+            border-radius: 13px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+            color: #fff;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        /* Ripple effect */
+        .btn .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+        .btn:disabled {
+            opacity: 0.45;
+            pointer-events: none;
+            filter: grayscale(25%);
+        }
+
+        .btn-tiktok {
+            background: linear-gradient(135deg, #ff0050, #ff3370);
+            box-shadow: 0 5px 22px rgba(255, 0, 80, 0.3);
+        }
+        .btn-tiktok:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 32px rgba(255, 0, 80, 0.5);
+            background: linear-gradient(135deg, #ff1a60, #ff4d80);
+        }
+
+        .btn-youtube-mp4 {
+            background: linear-gradient(135deg, #cc0000, #ff2222);
+            box-shadow: 0 5px 22px rgba(255, 0, 0, 0.28);
+        }
+        .btn-youtube-mp4:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 32px rgba(255, 0, 0, 0.48);
+            background: linear-gradient(135deg, #dd0000, #ff3333);
+        }
+
+        .btn-youtube-mp3 {
+            background: linear-gradient(135deg, #cc5500, #ff7700);
+            box-shadow: 0 5px 22px rgba(255, 120, 0, 0.28);
+        }
+        .btn-youtube-mp3:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 32px rgba(255, 120, 0, 0.48);
+            background: linear-gradient(135deg, #dd6600, #ff8800);
+        }
+
+        .btn-facebook {
+            background: linear-gradient(135deg, #1877f2, #3d8af5);
+            box-shadow: 0 5px 22px rgba(24, 119, 242, 0.3);
+        }
+        .btn-facebook:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 32px rgba(24, 119, 242, 0.5);
+            background: linear-gradient(135deg, #2080ff, #5098ff);
+        }
+
+        /* Spinner */
+        .btn .spinner {
+            display: none;
+            width: 17px;
+            height: 17px;
+            border: 2.5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-right: 7px;
+            vertical-align: middle;
+        }
+        .btn.loading .spinner {
+            display: inline-block;
+        }
+        .btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ============ RESULT AREA ============ */
+        .result-area {
+            display: none;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+            animation: resultReveal 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+        }
+        .result-area.show {
+            display: block;
+        }
+        @keyframes resultReveal {
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .result-area .video-title {
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.88rem;
+            margin-bottom: 12px;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border-radius: 28px;
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-size: 0.88rem;
+            transition: all 0.3s;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            animation: btnPulse 2s ease-in-out infinite;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .download-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+            box-shadow: 0 0 28px rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.04);
+        }
+        @keyframes btnPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 0 14px rgba(255, 255, 255, 0);
+            }
+        }
+        .savefrom-btn {
+            display: inline-block;
+            padding: 9px 22px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #bbb;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+        }
+        .savefrom-btn:hover {
+            background: rgba(255, 255, 255, 0.16);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ============ TOASTS ============ */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            background: rgba(20, 20, 40, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 14px;
+            padding: 15px 20px;
+            color: #fff;
+            font-weight: 600;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+            animation: slideInRight 0.45s cubic-bezier(0.25, 0.8, 0.25, 1.2),
+                fadeOut 0.35s 2.6s ease forwards;
+            pointer-events: auto;
+            max-width: 380px;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            letter-spacing: 0.3px;
+        }
+        .toast.success {
+            border-left: 4px solid var(--success);
+        }
+        .toast.error {
+            border-left: 4px solid var(--error);
+        }
+        .toast.info {
+            border-left: 4px solid #00c6ff;
+        }
+        .toast.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(130%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+        }
+
+        /* ============ FOOTER ============ */
+        .footer {
+            text-align: center;
+            padding: 35px 20px 15px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            position: relative;
+            z-index: 2;
+        }
+        .footer span {
+            background: linear-gradient(135deg, #6c00ff, #00c6ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        /* ============ SCROLLBAR ============ */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .floating-orb {
+                display: none;
+            }
+            #particleCanvas {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating orbs -->
+    <div class="floating-orb orb-1"></div>
+    <div class="floating-orb orb-2"></div>
+    <div class="floating-orb orb-3"></div>
+    <div class="floating-orb orb-4"></div>
+
+    <!-- Particle Canvas -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <header class="header">
+            <div class="logo-icon">⚡</div>
+            <h1 class="title">DUSHAN PROJECTS</h1>
+            <p class="subtitle">Ultimate Video Downloader</p>
+            <div class="glow-line"></div>
+        </header>
+
+        <div class="cards-grid">
+            <!-- ========== TIKTOK CARD ========== -->
+            <div class="card tiktok-card">
+                <div class="card-icon">
+                    <!-- TikTok-style icon -->
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="24" cy="24" r="23" fill="#111" stroke="#ff0050" stroke-width="2"/>
+                        <path d="M26.5 12C26.5 15.5 29 18 32 18.5V23c-2.5-.3-4.5-1.5-5.5-3v10c0 6-5 9-9 7-3.5-1.8-3-6.5 0-8.5 1.5-1 3.5-.5 4.5.5v4.5c-1-.5-2.5-.2-3 .5-.8 1.2.2 2.5 1.5 2.5 2 0 3.5-1.8 3.5-4V12h2.5z" fill="#ff0050"/>
+                        <circle cx="32" cy="13" r="1.5" fill="#00f2ea"/>
+                    </svg>
+                </div>
+                <div class="card-title">TikTok</div>
+                <div class="input-group">
+                    <label>📎 Paste TikTok Link</label>
+                    <input type="text" id="tiktokUrl" placeholder="https://www.tiktok.com/@user/video/..." autocomplete="off">
+                </div>
+                <div class="btn-group single">
+                    <button class="btn btn-tiktok" id="btnTiktok" onclick="downloadTikTok()">
+                        <span class="spinner"></span> <span class="btn-text">⬇ No Watermark</span>
+                    </button>
+                </div>
+                <div class="result-area" id="tiktokResult"></div>
+            </div>
+
+            <!-- ========== YOUTUBE CARD ========== -->
+            <div class="card youtube-card">
+                <div class="card-icon">
+                    <!-- YouTube-style icon -->
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="10" width="42" height="28" rx="8" fill="#ff0000" stroke="#cc0000" stroke-width="1.5"/>
+                        <polygon points="19,15 19,33 34,24" fill="#fff"/>
+                    </svg>
+                </div>
+                <div class="card-title">YouTube</div>
+                <div class="input-group">
+                    <label>📎 Paste YouTube Link</label>
+                    <input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-youtube-mp4" id="btnYtMp4" onclick="downloadYouTube('mp4')">
+                        <span class="spinner"></span> <span class="btn-text">🎬 MP4</span>
+                    </button>
+                    <button class="btn btn-youtube-mp3" id="btnYtMp3" onclick="downloadYouTube('mp3')">
+                        <span class="spinner"></span> <span class="btn-text">🎵 MP3</span>
+                    </button>
+                </div>
+                <div class="result-area" id="youtubeResult"></div>
+            </div>
+
+            <!-- ========== FACEBOOK CARD ========== -->
+            <div class="card facebook-card">
+                <div class="card-icon">
+                    <!-- Facebook-style icon -->
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="24" cy="24" r="23" fill="#1877f2" stroke="#166fe5" stroke-width="2"/>
+                        <path d="M26.5 35V25.5h3l.6-3.8h-3.6v-2.2c0-1 .4-1.8 1.8-1.8h2V14.3c-.5-.1-1.8-.3-3.3-.3-3.2 0-5.3 2-5.3 5.5v2.6H19V25.5h3.2V35h4.3z" fill="#fff"/>
+                    </svg>
+                </div>
+                <div class="card-title">Facebook</div>
+                <div class="input-group">
+                    <label>📎 Paste Facebook Link</label>
+                    <input type="text" id="facebookUrl" placeholder="https://www.facebook.com/.../videos/..." autocomplete="off">
+                </div>
+                <div class="btn-group single">
+                    <button class="btn btn-facebook" id="btnFb" onclick="downloadFacebook()">
+                        <span class="spinner"></span> <span class="btn-text">⬇ Download Video</span>
+                    </button>
+                </div>
+                <div class="result-area" id="facebookResult"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 <span>DUSHAN PROJECTS</span> — All Rights Reserved
+        </div>
+    </div>
+
+    <script>
+        // ==================== PARTICLE SYSTEM ====================
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouseX = -1000;
+        let mouseY = -1000;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initParticles();
+        });
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
+            }
+        });
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -15;
+                this.size = Math.random() * 2.2 + 0.6;
+                this.speedY = Math.random() * 0.55 + 0.15;
+                this.speedX = (Math.random() - 0.5) * 0.35;
+                this.opacity = Math.random() * 0.45 + 0.12;
+                const hues = [270, 195, 340, 25, 210];
+                this.hue = hues[Math.floor(Math.random() * hues.length)];
+                this.twinkleSpeed = Math.random() * 0.018 + 0.004;
+                this.twinkleOffset = Math.random() * Math.PI * 2;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX + Math.sin(this.y * 0.012 + this.twinkleOffset) * 0.25;
+                const dx = this.x - mouseX;
+                const dy = this.y - mouseY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 140) {
+                    const force = (140 - dist) / 140;
+                    this.x += (dx / dist) * force * 1.2;
+                    this.y += (dy / dist) * force * 1.2;
+                }
+                this.opacity = 0.12 + Math.sin(Date.now() * this.twinkleSpeed + this.twinkleOffset) * 0.18 + 0.18;
+                if (this.y > canvas.height + 20 || this.x < -25 || this.x > canvas.width + 25) {
+                    this.reset();
+                    this.y = -12;
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 75%, 58%, ${Math.max(0.04, this.opacity)})`;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 2.8, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 75%, 58%, ${Math.max(0.008, this.opacity * 0.3)})`;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            const count = Math.min(Math.floor((canvas.width * canvas.height) / 7000), 200);
+            particles = [];
+            for (let i = 0; i < count; i++) particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update();
+                p.draw(); });
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 90) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(255,255,255,${0.025 * (1 - dist / 90)})`;
+                        ctx.lineWidth = 0.4;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        resizeCanvas();
+        initParticles();
+        animateParticles();
+
+        // ==================== RIPPLE EFFECT ON BUTTONS ====================
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn');
+            if (!btn || btn.disabled || btn.classList.contains('loading')) return;
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            const rect = btn.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+            btn.appendChild(ripple);
+            ripple.addEventListener('animationend', () => ripple.remove());
+        });
+
+        // ==================== TOAST SYSTEM ====================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+            toast.innerHTML = `<span style="font-size:1.2rem;flex-shrink:0">${icons[type] || 'ℹ️'}</span> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3100);
+        }
+
+        // ==================== HELPERS ====================
+        function isValidUrl(url) {
+            try { const u = new URL(url); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; }
+        }
+
+        function setButtonLoading(btn, isLoading) {
+            if (isLoading) { btn.classList.add('loading');
+                btn.disabled = true; } else { btn.classList.remove('loading');
+                btn.disabled = false; }
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function showDownloadResult(containerId, title, downloadUrl, filename, showSaveFrom = false) {
+            const container = document.getElementById(containerId);
+            let buttons = `
+            <a class="download-btn" href="${downloadUrl}" target="_blank" rel="noopener" 
+               onclick="triggerDownload('${downloadUrl.replace(/'/g, "\\'")}', '${escapeHtml(filename || 'download')}'); return false;">
+                ⬇️ Click to Download
+            </a>`;
+            if (showSaveFrom) {
+                const ytUrl = document.getElementById('youtubeUrl').value;
+                buttons += `
+            <br><a class="savefrom-btn" href="https://en.savefrom.net/1-youtube-video-downloader-5/?url=${encodeURIComponent(ytUrl)}" target="_blank" rel="noopener">
+                🔄 Open in SaveFrom.net
+            </a>`;
+            }
+            container.innerHTML =
+                `<div class="video-title">${escapeHtml(title || 'Video ready!')}</div>${buttons}`;
+            container.classList.add('show');
+            // Auto-trigger download
+            if (downloadUrl && downloadUrl !== '#') {
+                triggerDownload(downloadUrl, filename || 'download');
+            }
+        }
+
+        function triggerDownload(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => document.body.removeChild(a), 800);
+        }
+
+        function hideResult(containerId) {
+            const container = document.getElementById(containerId);
+            container.classList.remove('show');
+            container.innerHTML = '';
+        }
+
+        // ==================== FETCH WITH TIMEOUT ====================
+        async function fetchWithTimeout(url, options = {}, timeout = 9000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(timer);
+                return response;
+            } catch (e) {
+                clearTimeout(timer);
+                throw e;
+            }
+        }
+
+        // ==================== TIKTOK DOWNLOAD ====================
+        async function downloadTikTok() {
+            const input = document.getElementById('tiktokUrl');
+            const url = input.value.trim();
+            const btn = document.getElementById('btnTiktok');
+            hideResult('tiktokResult');
+
+            if (!url) return showToast('Please paste a TikTok link', 'error');
+            if (!isValidUrl(url) || !url.includes('tiktok.com')) return showToast('Invalid TikTok URL', 'error');
+
+            setButtonLoading(btn, true);
+            showToast('🔍 Fetching TikTok video...', 'info');
+
+            try {
+                const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
+                const res = await fetchWithTimeout(apiUrl, {}, 10000);
+                const data = await res.json();
+                if (data.code !== 0 || !data.data || !data.data.play) throw new Error(data.msg || 'Video not found');
+                const videoUrl = data.data.play;
+                const title = (data.data.title || 'TikTok') + (data.data.author?.nickname ? ' - @' + data.data.author
+                    .nickname : '');
+                showDownloadResult('tiktokResult', title, videoUrl, 'tiktok_video.mp4');
+                showToast('✅ TikTok ready! Downloading...', 'success');
+            } catch (e) {
+                showToast('❌ ' + e.message, 'error');
+                hideResult('tiktokResult');
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+
+        // ==================== YOUTUBE DOWNLOAD ====================
+        function extractYouTubeId(url) {
+            try {
+                if (url.includes('youtube.com/watch')) return new URL(url).searchParams.get('v');
+                if (url.includes('youtu.be/')) return url.split('youtu.be/')[1]?.split(/[?#]/)[0];
+                if (url.includes('youtube.com/shorts/')) return url.split('shorts/')[1]?.split(/[?#]/)[0];
+                if (url.includes('youtube.com/embed/')) return url.split('embed/')[1]?.split(/[?#]/)[0];
+                if (url.includes('m.youtube.com/watch')) return new URL(url).searchParams.get('v');
+            } catch {}
+            return null;
+        }
+
+        async function downloadYouTube(format) {
+            const input = document.getElementById('youtubeUrl');
+            const url = input.value.trim();
+            const btnMp4 = document.getElementById('btnYtMp4');
+            const btnMp3 = document.getElementById('btnYtMp3');
+            hideResult('youtubeResult');
+
+            if (!url) return showToast('Please paste a YouTube link', 'error');
+            const videoId = extractYouTubeId(url);
+            if (!videoId) return showToast('❌ Could not extract video ID. Check the URL.', 'error');
+
+            setButtonLoading(btnMp4, true);
+            setButtonLoading(btnMp3, true);
+            showToast(`🔍 Searching for ${format.toUpperCase()}...`, 'info');
+
+            let downloadUrl = null;
+
+            // API 1: Vevioz (direct, CORS-friendly)
+            try {
+                const endpoint = format === 'mp3' ?
+                    `https://api.vevioz.com/@api/button/mp3/${videoId}` :
+                    `https://api.vevioz.com/@api/button/mp4/${videoId}`;
+                const res = await fetchWithTimeout(endpoint, {}, 8000);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.url && data.url.startsWith('http')) {
+                        downloadUrl = data.url;
+                    }
+                }
+            } catch (e) { console.log('Vevioz:', e.message); }
+
+            // API 2: Loader.to (direct)
+            if (!downloadUrl) {
+                try {
+                    const loaderUrl =
+                        `https://loader.to/api/card/?url=https://www.youtube.com/watch?v=${videoId}&format=${format}`;
+                    const res = await fetchWithTimeout(loaderUrl, {}, 8000);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.url && data.url.startsWith('http')) {
+                            downloadUrl = data.url;
+                        }
+                    }
+                } catch (e) { console.log('Loader.to:', e.message); }
+            }
+
+            // API 3: Y2mate via CORS proxy
+            if (!downloadUrl) {
+                try {
+                    const proxy = 'https://corsproxy.io/?';
+                    const analyzeUrl = proxy + encodeURIComponent(
+                        'https://www.y2mate.com/mates/analyzeV2/ajax');
+                    const form = new URLSearchParams();
+                    form.append('k_query', `https://www.youtube.com/watch?v=${videoId}`);
+                    form.append('k_page', 'home');
+                    form.append('hl', 'en');
+                    form.append('q_auto', '0');
+                    const analyzeRes = await fetchWithTimeout(analyzeUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: form.toString()
+                    }, 10000);
+                    const analyzeData = await analyzeRes.json();
+                    if (analyzeData.vid && analyzeData.links) {
+                        let k = null;
+                        if (format === 'mp3' && analyzeData.links.mp3?.mp3128?.k) {
+                            k = analyzeData.links.mp3.mp3128.k;
+                        } else if (format === 'mp4') {
+                            const mp4Links = analyzeData.links.mp4;
+                            if (mp4Links?.['720p']?.k) k = mp4Links['720p'].k;
+                            else if (mp4Links?.['480p']?.k) k = mp4Links['480p'].k;
+                            else if (mp4Links?.['360p']?.k) k = mp4Links['360p'].k;
+                        }
+                        if (k) {
+                            const convertUrl = proxy + encodeURIComponent(
+                                'https://www.y2mate.com/mates/convertV2/index');
+                            const convertForm = new URLSearchParams();
+                            convertForm.append('vid', analyzeData.vid);
+                            convertForm.append('k', k);
+                            const convertRes = await fetchWithTimeout(convertUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: convertForm.toString()
+                            }, 10000);
+                            const convertData = await convertRes.json();
+                            if (convertData.dlink && convertData.dlink.startsWith('http')) {
+                                downloadUrl = convertData.dlink;
+                            }
+                        }
+                    }
+                } catch (e) { console.log('Y2mate:', e.message); }
+            }
+
+            if (!downloadUrl) {
+                showToast('⚠️ Auto-download failed. Use SaveFrom.net below.', 'warning');
+                showDownloadResult('youtubeResult', 'Use manual download below', '#', '', true);
+            } else {
+                let title = 'YouTube Video';
+                try {
+                    const titleRes = await fetch(
+                        `https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+                    if (titleRes.ok) {
+                        const titleData = await titleRes.json();
+                        if (titleData.title) title = titleData.title;
+                    }
+                } catch {}
+                const ext = format === 'mp3' ? 'mp3' : 'mp4';
+                const filename = title.replace(/[^a-zA-Z0-9 _-]/g, '').substring(0, 50) + '.' + ext;
+                showDownloadResult('youtubeResult', title, downloadUrl, filename);
+                showToast(`✅ ${format.toUpperCase()} ready! Downloading...`, 'success');
+            }
+
+            setButtonLoading(btnMp4, false);
+            setButtonLoading(btnMp3, false);
+        }
+
+        // ==================== FACEBOOK DOWNLOAD ====================
+        async function downloadFacebook() {
+            const input = document.getElementById('facebookUrl');
+            const url = input.value.trim();
+            const btn = document.getElementById('btnFb');
+            hideResult('facebookResult');
+
+            if (!url) return showToast('Please paste a Facebook link', 'error');
+            if (!isValidUrl(url) || (!url.includes('facebook.com') && !url.includes('fb.watch') && !url.includes(
+                    'fb.com')))
+                return showToast('Invalid Facebook URL', 'error');
+
+            setButtonLoading(btn, true);
+            showToast('🔍 Fetching Facebook video...', 'info');
+
+            try {
+                const apiUrl = `https://fbdown.net/api.php?url=${encodeURIComponent(url)}`;
+                const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(apiUrl);
+                const res = await fetchWithTimeout(proxyUrl, {}, 12000);
+                if (!res.ok) throw new Error('Network error');
+                const data = await res.json();
+                if (!data.success || !data.url) throw new Error(data.message || 'Could not retrieve video');
+                showDownloadResult('facebookResult', data.title || 'Facebook Video', data.url,
+                'facebook_video.mp4');
+                showToast('✅ Facebook ready! Downloading...', 'success');
+            } catch (e) {
+                showToast('❌ ' + e.message, 'error');
+                hideResult('facebookResult');
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+
+        // ==================== ENTER KEY SUPPORT ====================
+        document.getElementById('tiktokUrl').addEventListener('keydown', e => { if (e.key === 'Enter')
+                downloadTikTok(); });
+        document.getElementById('youtubeUrl').addEventListener('keydown', e => { if (e.key === 'Enter')
+                downloadYouTube('mp4'); });
+        document.getElementById('facebookUrl').addEventListener('keydown', e => { if (e.key === 'Enter')
+                downloadFacebook(); });
+
+        console.log('%c🚀 DUSHAN PROJECTS %cv4.0 %c| All Systems Ready',
+            'color:#fff;font-size:1.3em;font-weight:bold;',
+            'color:#00c6ff;font-size:1em;',
+            'color:#aaa;');
+        console.log('%cTikTok (No Watermark) | YouTube (MP3 & MP4) | Facebook',
+            'color:#ff4d7a;font-size:0.9em;');
+        console.log('%cPaste any link and click download!', 'color:#aaa;');
+    </script>
+</body>
+</html>
